@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>带电粒子在电场中的 8 大模型</title>
+<style>
+:root{
+  --bg:#eef2f8; --card:#ffffff; --ink:#15304d; --sub:#5b6b7d; --line:#d9e2ed;
+  --teal:#0d7c86; --red:#df5238; --blue:#2563eb; --gold:#c98a10; --soft:#f6f9fd;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft YaHei","PingFang SC","SimHei",sans-serif;line-height:1.6}
+header{background:linear-gradient(120deg,#123a5e,#1d6b78);color:#fff;padding:20px 24px 16px;text-align:center}
+header h1{margin:0;font-size:30px;letter-spacing:2px}
+header p{margin:6px 0 0;font-size:15px;opacity:.9}
+.globalbar{max-width:1180px;margin:14px auto 0;display:flex;justify-content:flex-end;gap:10px}
+button{font-family:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 14px;font-size:14px;transition:.15s}
+button:hover{border-color:var(--teal);color:var(--teal)}
+button.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+button.primary:hover{background:#0a6670;color:#fff}
+nav{max-width:1180px;margin:12px auto;display:flex;gap:8px;flex-wrap:wrap;padding:0 10px}
+nav a{text-decoration:none;color:var(--sub);background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 13px;font-size:13px;transition:.15s}
+nav a:hover,nav a.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.card{max-width:1180px;margin:16px auto;background:var(--card);border-radius:14px;box-shadow:0 3px 16px rgba(21,48,77,.07);overflow:hidden;border:1px solid var(--line)}
+.card-hd{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#f8fbff,#fff)}
+.badge{font-size:13px;color:#fff;background:var(--teal);padding:3px 10px;border-radius:5px;white-space:nowrap}
+.badge.def{background:#1f78b4}.badge.comp{background:#c98a10}.badge.wave{background:#df5238}
+.num{font-size:30px;font-weight:800;color:var(--teal);line-height:1}
+.card-hd h2{font-size:24px;margin:0}
+.motto{font-size:15px;color:#9c432c;margin-left:auto;flex:1 1 340px;min-width:260px}
+.card-bd{display:grid;grid-template-columns:minmax(0,1.32fr) minmax(330px,1fr);gap:18px;padding:18px}
+@media(max-width:900px){.card-bd{grid-template-columns:1fr}.motto{margin-left:0}}
+.canvas-wrap{background:#fbfdff;border:1px solid var(--line);border-radius:10px;padding:8px}
+canvas{width:100%;display:block;border-radius:6px}
+.ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.ctrl label{font-size:13px;color:var(--sub);white-space:nowrap}
+input[type=range]{flex:1;min-width:110px;accent-color:var(--teal)}
+.readout{font-size:13px;background:#eaf2fb;color:#15456e;border-radius:6px;padding:4px 9px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.eqbox{background:var(--soft);border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:9px;padding:10px 14px}
+.card.comp .eqbox{border-left-color:var(--gold)}
+.card.wave .eqbox{border-left-color:var(--red)}
+.eqbox h3{margin:2px 0 8px;font-size:14px;color:var(--sub);font-weight:normal;letter-spacing:1px}
+.eq{display:flex;gap:10px;align-items:baseline;font-size:18px;margin:9px 0;line-height:1.45}
+.eq .n{flex:0 0 21px;height:21px;border-radius:50%;background:var(--teal);color:#fff;font-size:12px;display:inline-grid;place-items:center;vertical-align:middle}
+.card.comp .eq .n{background:var(--gold)}.card.wave .eq .n{background:var(--red)}
+.eq .body{flex:1}
+.frac{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;line-height:1.12;margin:0 2px;font-size:.86em}
+.frac .up{border-bottom:1px solid currentColor;padding:0 4px}
+.frac .dn{padding:0 4px}
+i{font-family:Georgia,"Times New Roman",serif}
+sub,sup{font-size:.68em;line-height:0}
+.tip{margin-top:12px;background:#fff8e9;border:1px solid #f0dfb4;border-radius:9px;padding:10px 13px;font-size:14.5px;line-height:1.75}
+.tip b{color:#a46608}
+footer{max-width:1180px;margin:24px auto 40px;text-align:center;color:var(--sub);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>带电粒子在电场中的 8 大模型</h1>
+  <p>看见装置 → 想到模型 → 直接用结论　　动画演示 · 极简推导 · 教学点拨</p>
+</header>
+
+<div class="globalbar"><button class="primary" id="globalBtn">⏸ 全部暂停</button></div>
+
+<nav id="nav">
+  <a href="#m1">01 直线加速</a><a href="#m2">02 减速与折返</a><a href="#m3">03 类平抛</a><a href="#m4">04 中点结论</a>
+  <a href="#m5">05 先加速后偏转</a><a href="#m6">06 打在屏上</a><a href="#m7">07 交变电场</a><a href="#m8">08 等效重力场</a>
+</nav>
+
+<main>
+<!-- ============ 01 ============ -->
+<section class="card" id="m1">
+  <div class="card-hd"><span class="badge">直线加速</span><span class="num">01</span><h2>直线加速</h2>
+    <span class="motto">见到“由静止经电压加速” → 想到电势能全部转成动能，只看电势差。</span></div>
+  <div class="card-bd">
+    <div>
+      <div class="canvas-wrap"><canvas data-c="1"></canvas></div>
+      <div class="ctrl"><button data-play="1" class="primary">⏸ 暂停</button><button data-reset="1">↺ 重播</button>
+        <label>加速电压 U</label><input type="range" data-p="1" min="50" max="300" step="10" value="120">
+        <span class="readout" data-r="1">v = —</span></div>
+    </div>
+    <div>
+      <div class="eqbox"><h3>核心结论</h3>
+        <div class="eq"><span class="n">1</span><div class="body"><i>qU</i> = <span class="frac"><span class="up">1</span><span class="dn">2</span></span><i>mv</i><sup>2</sup>　<span style="font-size:14px;color:#667">（动能定理）</span></div></div>
+        <div class="eq"><span class="n">2</span><div class="body"><i>v</i> = √<span class="frac"><span class="up">2<i>qU</i></span><span class="dn"><i>m</i></span></span>　，　<i>a</i> = <span class="frac"><span class="up"><i>qU</i></span><span class="dn"><i>md</i></span></span></div></div>
+        <div class="eq"><span class="n">3</span><div class="body"><i>v</i>-<i>t</i> 图像为过原点的直线，<i>v</i> ∝ √<i>U</i></div></div>
+      </div>
+      <div class="tip"><b>教师点拨：</b>速度由电势差 <i>U</i> 唯一决定，与板间距 <i>d</i>、运动路径均无关——<i>d</i> 只改变加速度和所需时间。带电微观粒子默认不计重力；带电微粒、小球则必须计重力。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section class="card" id="m2">
+  <div class="card-hd"><span class="badge">直线减速</span><span class="num">02</span><h2>减速：能否到达</h2>
+    <span class="motto">见到“逆着电场射入” → 算初动能够不够交电势差这笔账。</span></div>
+  <div class="card-bd">
+    <div>
+      <div class="canvas-wrap"><canvas data-c="2"></canvas></div>
+      <div class="ctrl"><button data-play="2" class="primary">⏸ 暂停</button><button data-reset="2">↺ 重播</button>
+        <label>反向电压 U</label><input type="range" data-p="2" min="30" max="260" step="10" value="120">
+        <span class="readout" data-r="2">判据：—</span></div>
+    </div>
+    <div>
+      <div class="eqbox"><h3>核心结论</h3>
+        <div class="eq"><span class="n">1</span><div class="body">判据：<span class="frac"><span class="up">1</span><span class="dn">2</span></span><i>mv</i><sub>0</sub><sup>2</sup> ≥ <i>qU</i> → 穿过；小于 → 折返</div></div>
+        <div class="eq"><span class="n">2</span><div class="body">恰好到达：<i>v</i> = 0，<i>x</i><sub>0</sub> = <span class="frac"><span class="up"><i>mv</i><sub>0</sub><sup>2</sup></span><span class="dn">2<i>qE</i></span></span></div></div>
+        <div class="eq"><span class="n">3</span><div class="body">临界电压 <i>U</i><sub>c</sub> = <span class="frac"><span class="up"><i>mv</i><sub>0</sub><sup>2</sup></span><span class="dn">2<i>q</i></span></span>　，　<i>Y</i><sub>0</sub> = 0</div></div>
+      </div>
+      <div class="tip"><b>教师点拨：</b>课本说“速度减为零时恰好到达”，但电场力并未消失——下一瞬粒子立即折返。选择题常把“恰好到达”和“停在那里”混为一谈，这是最经典的陷阱。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section class="card" id="m3">
+  <div class="card-hd"><span class="badge def">偏转</span><span class="num">03</span><h2>偏转：类平抛</h2>
+    <span class="motto">见到“垂直电场射入” → 水平匀速、竖直匀加速，两个分运动互不干扰。</span></div>
+  <div class="card-bd">
+    <div>
+      <div class="canvas-wrap"><canvas data-c="3"></canvas></div>
+      <div class="ctrl"><button data-play="3" class="primary">⏸ 暂停</button><button data-reset="3">↺ 重播</button>
+        <label>偏转电压 U</label><input type="range" data-p="3" min="5" max="40" step="1" value="20">
+        <span class="readout" data-r="3">y = —</span></div>
+    </div>
+    <div>
+      <div class="eqbox"><h3>核心结论</h3>
+        <div class="eq"><span class="n">1</span><div class="body"><i>t</i> = <span class="frac"><span class="up"><i>L</i></span><span class="dn"><i>v</i><sub>0</sub></span></span>　，　<i>a</i> = <span class="frac"><span class="up"><i>qU</i></span><span class="dn"><i>md</i></span></span></div></div>
+        <div class="eq"><span class="n">2</span><div class="body"><i>y</i> = <span class="frac"><span class="up"><i>qUL</i><sup>2</sup></span><span class="dn">2<i>mdv</i><sub>0</sub><sup>2</sup></span></span>　，　tan<i>θ</i> = <span class="frac"><span class="up"><i>qUL</i></span><span class="dn"><i>mdv</i><sub>0</sub><sup>2</sup></span></span></div></div>
+        <div class="eq"><span class="n">3</span><div class="body">轨迹方程 <i>y</i> = <span class="frac"><span class="up"><i>qU</i></span><span class="dn">2<i>mdv</i><sub>0</sub><sup>2</sup></span></span><i>x</i><sup>2</sup>　（抛物线）</div></div>
+      </div>
+      <div class="tip"><b>教师点拨：</b>偏移由“飞多久 × 偏多快”决定。水平速度不变，所以 <i>L</i> 的影响是平方级——板长加倍，偏移变成四倍。判别名“能否飞出极板”时，先看 <i>y</i> 与 <i>d</i>/2 的关系。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section class="card" id="m4">
+  <div class="card-hd"><span class="badge def">偏转</span><span class="num">04</span><h2>中点结论</h2>
+    <span class="motto">见到“射出偏转电场的速度方向” → 反向延长线过板长中点。</span></div>
+  <div class="card-bd">
+    <div>
+      <div class="canvas-wrap"><canvas data-c="4"></canvas></div>
+      <div class="ctrl"><button data-play="4" class="primary">⏸ 暂停</button><button data-reset="4">↺ 重播</button>
+        <label>入射速度 v₀</label><input type="range" data-p="4" min="16" max="30" step="1" value="20">
+        <span class="readout" data-r="4">tanθ / tanα = —</span></div>
+    </div>
+    <div>
+      <div class="eqbox"><h3>核心结论</h3>
+        <div class="eq"><span class="n">1</span><div class="body">速度方向：tan<i>θ</i> = <span class="frac"><span class="up"><i>v</i><sub>y</sub></span><span class="dn"><i>v</i><sub>0</sub></span></span> = <span class="frac"><span class="up"><i>at</i></span><span class="dn"><i>v</i><sub>0</sub></span></span></div></div>
+        <div class="eq"><span class="n">2</span><div class="body">位移方向：tan<i>α</i> = <span class="frac"><span class="up"><i>y</i></span><span class="dn"><i>L</i></span></span> = <span class="frac"><span class="up"><i>at</i></span><span class="dn">2<i>v</i><sub>0</sub></span></span></div></div>
+        <div class="eq"><span class="n">3</span><div class="body">tan<i>θ</i> = 2tan<i>α</i> → 反向延长线交于 <i>L</i>/2 处</div></div>
+      </div>
+      <div class="tip"><b>教师点拨：</b>这不是新物理，是抛物线的几何性质：切线斜率恰为割线斜率的两倍。它是模型 06 的钥匙——凡“出场后打到屏上”，都可等效为“从板中点沿直线射出”。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05 ============ -->
+<section class="card comp" id="m5">
+  <div class="card-hd"><span class="badge comp">综合</span><span class="num">05</span><h2>先加速后偏转</h2>
+    <span class="motto">见到“不同粒子经同一电压加速再偏转” → 比荷消掉，轨迹重合。</span></div>
+  <div class="card-bd">
+    <div>
+      <div class="canvas-wrap"><canvas data-c="5"></canvas></div>
+      <div class="ctrl"><button data-play="5" class="primary">⏸ 暂停</button><button data-reset="5">↺ 重播</button>
+        <label>偏转电压 U₂</label><input type="range" data-p="5" min="2" max="20" step="1" value="10">
+        <span class="readout" data-r="5">y = —</span></div>
+    </div>
+    <div>
+      <div class="eqbox"><h3>核心结论</h3>
+        <div class="eq"><span class="n">1</span><div class="body">加速：<i>qU</i><sub>1</sub> = <span class="frac"><span class="up">1</span><span class="dn">2</span></span><i>mv</i><sub>0</sub><sup>2</sup></div></div>
+        <div class="eq"><span class="n">2</span><div class="body">偏转：<i>y</i> = <span class="frac"><span class="up"><i>qU</i><sub>2</sub><i>L</i><sup>2</sup></span><span class="dn">2<i>mdv</i><sub>0</sub><sup>2</sup></span></span></div></div>
+        <div class="eq"><span class="n">3</span><div class="body"><i>y</i> = <span class="frac"><span class="up"><i>U</i><sub>2</sub><i>L</i><sup>2</sup></span><span class="dn">4<i>U</i><sub>1</sub><i>d</i></span></span>　→ 与 <i>q</i>、<i>m</i> 无关</div></div>
+      </div>
+      <div class="tip"><b>教师点拨：</b>前提是“<b>从静止出发</b>且<b>加速电压相同</b>”。若改成“初速度相同”，则 <i>y</i> ∝ <i>q</i>/<i>m</i>，质子与 α 粒子的轨迹立刻分开——条件变一个字，结论反过来。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 06 ============ -->
+<section class="card comp" id="m6">
+  <div class="card-hd"><span class="badge comp">综合</span><span class="num">06</span><h2>打在屏上</h2>
+    <span class="motto">见到“出场后打到荧光屏” → 从中点按直线算，一步到位。</span></div>
+  <div class="card-bd">
+    <div>
+      <div class="canvas-wrap"><canvas data-c="6"></canvas></div>
+      <div class="ctrl"><button data-play="6" class="primary">⏸ 暂停</button><button data-reset="6">↺ 重播</button>
+        <label>偏转电压 U</label><input type="range" data-p="6" min="0" max="20" step="1" value="10">
+        <span class="readout" data-r="6">Y = —</span></div>
+    </div>
+    <div>
+      <div class="eqbox"><h3>核心结论</h3>
+        <div class="eq"><span class="n">1</span><div class="body"><i>Y</i> = (<i>L</i>/2 + <i>l</i>) tan<i>θ</i></div></div>
+        <div class="eq"><span class="n">2</span><div class="body"><i>Y</i> = <span class="frac"><span class="up"><i>U</i><sub>2</sub><i>L</i>(<i>L</i>/2 + <i>l</i>)</span><span class="dn">2<i>U</i><sub>1</sub><i>d</i></span></span></div></div>
+        <div class="eq"><span class="n">3</span><div class="body"><i>Y</i> ∝ <i>U</i><sub>2</sub>，<i>Y</i>-<i>U</i> 图像是过原点的直线</div></div>
+      </div>
+      <div class="tip"><b>教师点拨：</b>别老老实实分段算“板内抛物线 + 板外直线”——两式相加虽也对，但极易漏掉 <i>l</i> 前面的 <i>L</i>/2。用中点结论把全程看成一条直线，考场上一行写完。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 07 ============ -->
+<section class="card wave" id="m7">
+  <div class="card-hd"><span class="badge wave">交变电场</span><span class="num">07</span><h2>交变电场</h2>
+    <span class="motto">见到“方波电压、t = 0 静止释放” → 画 v-t 图，速度不变号就一直向前。</span></div>
+  <div class="card-bd">
+    <div>
+      <div class="canvas-wrap"><canvas data-c="7"></canvas></div>
+      <div class="ctrl"><button data-play="7" class="primary">⏸ 暂停</button><button data-reset="7">↺ 重播</button>
+        <label>方波周期 T</label><input type="range" data-p="7" min="8" max="20" step="1" value="14">
+        <span class="readout" data-r="7">每半周期位移 s —</span></div>
+    </div>
+    <div>
+      <div class="eqbox"><h3>核心结论</h3>
+        <div class="eq"><span class="n">1</span><div class="body"><i>a</i> = <span class="frac"><span class="up"><i>qU</i></span><span class="dn"><i>md</i></span></span>，每半周期加速度反向、大小不变</div></div>
+        <div class="eq"><span class="n">2</span><div class="body"><i>v</i><sub>max</sub> = <i>aT</i>/2，每周期末 <i>v</i> = 0（<i>v</i>-<i>t</i> 为三角波）</div></div>
+        <div class="eq"><span class="n">3</span><div class="body">每半周期位移均为 <i>s</i> = <span class="frac"><span class="up"><i>aT</i><sup>2</sup></span><span class="dn">8</span></span></div></div>
+      </div>
+      <div class="tip"><b>教师点拨：</b>网上常写位移比“1∶3∶5”，那是<b>单向匀加速</b>连续相等时间的比，用在这里是错的——此处速度减到零再加速，四个半周期位移相等。若释放时刻改成 <i>t</i> = <i>T</i>/4，速度就会反向，粒子原地往复。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 08 ============ -->
+<section class="card comp" id="m8">
+  <div class="card-hd"><span class="badge comp">等效场</span><span class="num">08</span><h2>等效重力场</h2>
+    <span class="motto">见到“重力与电场力都是恒力” → 合成等效重力，找等效最高点。</span></div>
+  <div class="card-bd">
+    <div>
+      <div class="canvas-wrap"><canvas data-c="8"></canvas></div>
+      <div class="ctrl"><button data-play="8" class="primary">⏸ 暂停</button><button data-reset="8">↺ 重播</button>
+        <label>电场力/重力 qE/mg</label><input type="range" data-p="8" min="0" max="60" step="1" value="10">
+        <span class="readout" data-r="8">g′ = —</span></div>
+    </div>
+    <div>
+      <div class="eqbox"><h3>核心结论</h3>
+        <div class="eq"><span class="n">1</span><div class="body"><i>mg</i>′ = √[(<i>mg</i>)<sup>2</sup> + (<i>qE</i>)<sup>2</sup>]，　<i>g</i>′ = √[<i>g</i><sup>2</sup> + (<i>qE</i>/<i>m</i>)<sup>2</sup>]</div></div>
+        <div class="eq"><span class="n">2</span><div class="body">等效最低点为平衡位置，正对面是等效最高点</div></div>
+        <div class="eq"><span class="n">3</span><div class="body">恰好过顶：<i>mg</i>′ = <i>mv</i><sup>2</sup>/<i>L</i> → <i>v</i><sub>min</sub> = √(<i>g</i>′<i>L</i>)</div></div>
+        <div class="eq"><span class="n">4</span><div class="body">绳模型最低点：<i>v</i> = √(5<i>g</i>′<i>L</i>)；杆模型过顶可为 0</div></div>
+      </div>
+      <div class="tip"><b>教师点拨：</b>把单摆、圆周运动的所有公式照搬，只需 <i>g</i> → <i>g</i>′、把“竖直方向”换成“合力方向”。判断“能否完成圆周”，关键不是几何最高点，而是<b>等效最高点</b>——此处速度最小、绳子最先松弛。</div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>物理内核已用 Node 数值积分逐项校验 · 动画基于 Canvas 2D 手写管线 · 参数可实时调节</footer>
+
+<script>
+/* ========== 通用绘图工具（逻辑坐标 720 × 400） ========== */
+const W = 720, H = 400;
+const C = { ink:'#15304d', sub:'#7a8a9b', grid:'#e8eef5', blue:'#3573c8', red:'#e04a35',
+            orange:'#ef9a1f', green:'#1aaa7a', plate:'#aab6c4', dash:'#c2ceda' };
+
+function txt(ctx,s,x,y,size=15,color=C.ink,align='left',weight='normal'){
+  ctx.fillStyle=color;ctx.font=weight+' '+size+'px "Microsoft YaHei",sans-serif';
+  ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(s,x,y);ctx.textAlign='left';
+}
+function seg(ctx,x1,y1,x2,y2,color,w=2,dash=null){
+  ctx.save();ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+  ctx.strokeStyle=color;ctx.lineWidth=w;if(dash)ctx.setLineDash(dash);ctx.stroke();ctx.restore();
+}
+function arr(ctx,x1,y1,x2,y2,color,w=2,head=9){
+  const a=Math.atan2(y2-y1,x2-x1);
+  seg(ctx,x1,y1,x2,y2,color,w);
+  ctx.save();ctx.beginPath();ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-head*Math.cos(a-0.42),y2-head*Math.sin(a-0.42));
+  ctx.lineTo(x2-head*Math.cos(a+0.42),y2-head*Math.sin(a+0.42));
+  ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore();
+}
+function poly(ctx,pts,color,w=2,dash=null){
+  if(pts.length<2)return;ctx.save();ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);
+  ctx.strokeStyle=color;ctx.lineWidth=w;ctx.lineJoin='round';if(dash)ctx.setLineDash(dash);ctx.stroke();ctx.restore();
+}
+function dot(ctx,x,y,r,color,halo=false){
+  if(halo){const g=ctx.createRadialGradient(x,y,0,x,y,r*3.2);
+    g.addColorStop(0,color+'99');g.addColorStop(1,color+'00');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r*3.2,0,7);ctx.fill();}
+  ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+}
+function plateV(ctx,x,y1,y2,sign,color=C.plate){
+  seg(ctx,x,y1,x,y2,color,7);
+  if(sign)txt(ctx,sign,x+(x<360?-18:18),(y1+y2)/2,22,sign==='+'?C.red:C.blue,'center');
+}
+function plateH(ctx,x1,x2,y,sign){
+  seg(ctx,x1,y,x2,y,C.plate,6);
+  if(sign)txt(ctx,sign,x1-18,y,20,sign==='+'?C.red:C.blue,'center');
+}
+function fieldH(ctx,y,x1,x2,n,dir,color=C.blue){
+  for(let i=0;i<n;i++){const x=x1+(x2-x1)*i/(n-1);arr(ctx,x,y,x+dir*20,y,color,1.6,6);}
+}
+function fieldV(ctx,x,y1,y2,n,dir){
+  for(let i=0;i<n;i++){const x0=x[0]+(x[1]-x[0])*i/(n-1);arr(ctx,x0,y1,x0,y1+dir*22,C.blue,1.6,6);}
+}
+function chartAxes(ctx,x,y,w,h,title){
+  seg(ctx,x,y,x+w,y,C.ink,1.6);seg(ctx,x,y,x,y-h,C.ink,1.6);
+  arr(ctx,x+w,y,x+w-7,y,C.ink,1.6,7);arr(ctx,x,y-h+7,x,y-h,C.ink,1.6,7);
+  txt(ctx,title,x+4,y-h-10,13,C.sub);
+}
+function gridBg(ctx){
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle=C.grid;ctx.lineWidth=1;
+  for(let x=36;x<W;x+=36){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=32;y<H;y+=36){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+}
+
+/* ========== 8 个模型 ========== */
+const models = [null];
+
+/* 01 直线加速 */
+models[1]={duration:2.6, params:{U:120},
+ draw(ctx,p,m){
+  gridBg(ctx);const U=m.params.U,a=U/0.1*0.001, x0=125,x1=575,y=205;
+  plateV(ctx,x0,95,315,'+');plateV(ctx,x1,95,315,'−');
+  fieldH(ctx,y,x0+28,x1-28,6,1);
+  txt(ctx,'加速电压 U',(x0+x1)/2,335,15,C.sub,'center');
+  const xp=x0+(x1-x0)*p*p, v=Math.sqrt(2*U);
+  dot(ctx,xp,y,7,C.red,true);
+  if(p>0.02)arr(ctx,xp,y,xp+28+58*p/1.4,y,C.orange,3,10);
+  txt(ctx,'v',xp+38+58*p/1.4,y-12,16,C.orange);
+  chartAxes(ctx,585,120,105,75,'v-t');
+  poly(ctx,[[585,120],[665,60]],C.blue,2);          // t=0 从纵轴出发
+  dot(ctx,585+80*p,120-60*p,4,C.red);
+  txt(ctx,'0',580,127,11,C.sub);
+  txt(ctx,'由静止释放',x0+40,y-30,14,C.sub);
+ }
+};
+
+/* 02 减速与折返 */
+models[2]={duration:3.1, params:{U:120},
+ draw(ctx,p,m){
+  gridBg(ctx);const U=m.params.U, x0=125,x1=575,y=205;
+  plateV(ctx,x0,95,315,'−');plateV(ctx,x1,95,315,'+');
+  fieldH(ctx,y,x0+28,x1-28,6,-1);
+  const Ek0=200, reach=Ek0>=U;
+  txt(ctx,reach?'初动能足够 → 穿过':'初动能不足 → 折返',360,55,18,reach?C.green:C.red,'center','bold');
+  let xp;
+  if(reach){
+    // 匀减速解析：ξ(τ) = (Ek0/U)(2kτ − k²τ²)，k = 1 − v末/v₀
+    const beta=Math.sqrt(1-U/Ek0), k=1-beta, s=Math.min(1,p/0.82);
+    const xi=(Ek0/U)*(2*k*s-k*k*s*s);
+    xp=x0+(x1-x0)*xi+(p>0.82?(p-0.82)/0.18*70:0);
+  }else{
+    // 折返：去程位移 ∝ 2s−s²，回程从静止向左 ∝ s²，保证 p=0.5 处连续
+    const xmax=Ek0/U;
+    const s=p<0.5?2*p:2*p-1;
+    const xi=p<0.5?xmax*(2*s-s*s):xmax*(1-s*s);
+    xp=x0+(x1-x0)*xi;
+    const xt=x0+(x1-x0)*xmax;
+    seg(ctx,xt,95,xt,315,C.red+'80',2,[5,5]);
+    txt(ctx,'速度归零处',xt,80,13,C.red,'center');
+  }
+  dot(ctx,xp,y,7,C.red,true);
+  if(p<0.95)arr(ctx,xp,y,xp+(reach?40:-40)*(1-p),y,C.orange,3,10);
+  // v-t：t=0 落在纵轴上；减速段与反向加速段画成同一条直线，斜率严格相同（a=qE/m 恒定）
+  const ax=600, va=95, sc=65/20;
+  seg(ctx,ax,25,ax,165,C.ink,1.4);
+  seg(ctx,590,va,710,va,C.ink,1.4);
+  arr(ctx,710,va,703,va-4,C.ink,1.4,6);
+  txt(ctx,'v',ax-6,28,12,C.sub);txt(ctx,'t',707,va-12,12,C.sub);
+  txt(ctx,'0',ax-12,va+11,11,C.sub);
+  txt(ctx,'v₀',ax-17,28,12,C.sub);txt(ctx,'−v₀',ax-21,162,12,C.sub);
+  const vEnd=reach?Math.sqrt(2*(Ek0-U)):0;
+  const totalDv=reach?(20-vEnd):40;
+  const dy=totalDv*sc, dx=dy/1.3, y0=va-20*sc;
+  poly(ctx,[[ax,y0],[ax+dx,y0+dy]],C.blue,2.4);
+  const cp=reach?Math.min(1,p/0.82):p;
+  dot(ctx,ax+dx*cp,y0+dy*cp,4,C.red);
+ }
+};
+
+/* 03 类平抛 */
+models[3]={duration:2.8, params:{U:20},
+ draw(ctx,p,m){
+  gridBg(ctx);const U=m.params.U,x0=110,x1=560,yt=95,yb=305,y0=200;
+  plateH(ctx,x0,x1,yt,'+');plateH(ctx,x0,x1,yb,'−');
+  for(let i=0;i<9;i++){const x=x0+22+i*(x1-x0-44)/8;arr(ctx,x,yt+10,x,yt+36,C.blue,1.5,6);}
+  const a=U/20, k=70*a/(x1-x0)**2, pts=[];
+  const px=x0+(x1-x0)*p, py=y0+k*(px-x0)*(px-x0);
+  for(let s=0;s<=p;s+=0.01){const xx=x0+(x1-x0)*s;pts.push([xx,y0+k*(xx-x0)*(xx-x0)]);}
+  poly(ctx,pts,C.orange,2.6);dot(ctx,px,py,7,C.red,true);
+  if(p>0.03){
+   const vymin=0, vy=140*a*p;
+   arr(ctx,px,py,px+62,py,C.blue,2,8);txt(ctx,'v₀',px+68,py-8,14,C.blue);
+   arr(ctx,px,py,px,py+Math.max(6,vy),C.green,2,8);txt(ctx,'vᵧ',px+8,py+Math.max(6,vy)+8,13,C.green);
+   arr(ctx,px,py,px+62,py+Math.max(6,vy),C.orange,2.4,9);
+  }
+  txt(ctx,'L',(x0+x1)/2,yb+24,15,C.sub,'center');
+  txt(ctx,'U',x1+18,(yt+yb)/2,17,C.blue);
+  txt(ctx,'y = '+(m.params.U*0.001125).toFixed(4)+' m',x1+18,yb-10,13,C.orange);
+ }
+};
+
+/* 04 中点结论 */
+models[4]={duration:3.4, params:{v0:20},
+ draw(ctx,p,m){
+  gridBg(ctx);const x0=95,x1=515,yt=100,yb=300,y0=200,v0=m.params.v0;
+  plateH(ctx,x0,x1,yt,'+');plateH(ctx,x0,x1,yb,'−');
+  for(let i=0;i<9;i++){const x=x0+22+i*(x1-x0-44)/8;arr(ctx,x,yt+10,x,yt+36,C.blue,1.5,6);}
+  const k=55*(20/v0)**2/(x1-x0)**2;
+  let px,py;
+  if(p<=0.72){const s=p/0.72;px=x0+(x1-x0)*s;py=y0+k*(px-x0)**2;}
+  else {const s=(p-0.72)/0.28;const xb=x1,yb0=y0+k*(x1-x0)**2;const tan=2*k*(x1-x0);px=xb+170*s;py=yb0+tan*170*s;}
+  const path=[];
+  for(let s=0;s<=Math.min(1,p/0.72);s+=0.01){const xx=x0+(x1-x0)*s;path.push([xx,y0+k*(xx-x0)**2]);}
+  poly(ctx,path,C.orange,2.6);
+  if(p>0.72){const xb=x1,yb0=y0+k*(x1-x0)**2;poly(ctx,[[xb,yb0],[px,py]],C.orange,2.6);
+   const xm=(x0+x1)/2;poly(ctx,[[px,py],[xm,y0]],C.red+'aa',2,[7,5]);
+   dot(ctx,xm,y0,5,C.red);txt(ctx,'L/2',xm,y0-16,14,C.red,'center');
+   poly(ctx,[[x0,y0],[px,y0]],C.dash,1.5,[5,5]);
+   const ang=Math.atan2(py-y0,px-xm);txt(ctx,'α',xm+38,y0-3+38*Math.tan(ang)/2,14,C.green);
+   txt(ctx,'θ',px-30,py-16,14,C.red);
+  }
+  dot(ctx,px,py,7,C.red,true);
+  txt(ctx,'tanθ = 2tanα',610,80,17,C.red,'center','bold');
+ }
+};
+
+/* 05 先加速后偏转 */
+models[5]={duration:3.3, params:{U2:10},
+ draw(ctx,p,m){
+  gridBg(ctx);const U2=m.params.U2;
+  plateV(ctx,72,120,280,'+');plateV(ctx,140,120,280,'−');
+  txt(ctx,'U₁',105,305,14,C.sub,'center');
+  plateH(ctx,205,545,110,'+');plateH(ctx,205,545,290,'−');
+  for(let i=0;i<7;i++){const x=225+i*50;arr(ctx,x,120,x,146,C.blue,1.5,6);}
+  txt(ctx,'U₂',570,210,16,C.blue);
+  const k=45*U2/10/340**2, xb=205, xe=545, y0=200;
+  let px,py;
+  if(p<0.22){const s=p/0.22;px=72+(140-72)*s;py=y0;}
+  else if(p<0.74){const s=(p-0.22)/0.52;px=xb+(xe-xb)*s;py=y0+k*(px-xb)**2;}
+  else {const s=(p-0.74)/0.26;const tan=2*k*(xe-xb);px=xe+140*s;py=y0+k*(xe-xb)**2+tan*140*s;}
+  const path=[];
+  if(p>0.22){for(let s=0;s<=Math.min(1,(p-0.22)/0.52);s+=0.02){const xx=xb+(xe-xb)*s;path.push([xx,y0+k*(xx-xb)**2]);}}
+  poly(ctx,path,C.orange,2.4);
+  if(p>0.74){const tan=2*k*(xe-xb);poly(ctx,[[xe,y0+k*(xe-xb)**2],[px,py]],C.orange,2.4);}
+  dot(ctx,px,py,7,C.red,true);
+  // 双粒子柱
+  seg(ctx,600,330,600,140,C.ink,1.4);seg(ctx,600,330,700,330,C.ink,1.4);
+  const hgt=60*U2/20;
+  ctx.fillStyle=C.red+'cc';ctx.fillRect(612,330-hgt,26,hgt);
+  ctx.fillStyle=C.orange+'cc';ctx.fillRect(650,330-hgt,26,hgt);
+  txt(ctx,'质子',625,346,12,C.red,'center');txt(ctx,'α粒子',663,346,12,C.orange,'center');
+  txt(ctx,'y 相同',650,118,13,C.green,'center','bold');
+  txt(ctx,'y = U₂L²/(4U₁d)',430,370,14,C.sub,'center');
+ }
+};
+
+/* 06 打在屏上 */
+models[6]={duration:3.2, params:{U:10},
+ draw(ctx,p,m){
+  gridBg(ctx);const U=m.params.U,x0=90,x1=400,y0=200,screenX=620;
+  plateH(ctx,x0,x1,105,'+');plateH(ctx,x0,x1,295,'−');
+  for(let i=0;i<7;i++){const x=x0+20+i*48;arr(ctx,x,115,x,141,C.blue,1.5,6);}
+  seg(ctx,screenX,65,screenX,335,C.green,6);txt(ctx,'荧光屏',screenX,50,14,C.green,'center');
+  const k=45*U/10/310**2, tan=2*k*310;
+  let px,py;
+  if(p<0.62){const s=p/0.62;px=x0+(x1-x0)*s;py=y0+k*(px-x0)**2;}
+  else {const s=(p-0.62)/0.38;px=x1+(screenX-x1)*s;py=y0+k*(x1-x0)**2+tan*(screenX-x1)*s;}
+  const path=[];for(let s=0;s<=Math.min(1,p/0.62);s+=0.02){const xx=x0+(x1-x0)*s;path.push([xx,y0+k*(xx-x0)**2]);}
+  poly(ctx,path,C.orange,2.4);
+  if(p>0.62)poly(ctx,[[x1,y0+k*(x1-x0)**2],[px,py]],C.orange,2.4);
+  poly(ctx,[[px,py],[(x0+x1)/2,y0]],C.red+'99',2,[7,5]);
+  dot(ctx,(x0+x1)/2,y0,5,C.red);txt(ctx,'L/2',(x0+x1)/2,y0-16,13,C.red,'center');
+  dot(ctx,px,py,7,C.red,true);
+  if(p>=0.995){for(let r=8;r<26;r+=6){ctx.strokeStyle=C.red+'55';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(screenX,py,r,0,7);ctx.stroke();}}
+  // Y-U 图
+  chartAxes(ctx,480,130,140,85,'Y-U');
+  poly(ctx,[[488,130],[618,130-72]],C.red,2);
+  dot(ctx,488+130*U/20,130-72*U/20,4,C.red);
+  txt(ctx,'Y ∝ U',550,50,13,C.red);
+  txt(ctx,'Y = (L/2 + l) tanθ',320,365,15,C.sub,'center');
+ }
+};
+
+/* 07 交变电场 */
+models[7]={duration:4.0, params:{T:14},
+ draw(ctx,p,m){
+  gridBg(ctx);const x0=105,x1=445,y=190;
+  const sign=((Math.floor(p*4)%2)===0)?1:-1;
+  plateV(ctx,x0,105,275,sign>0?'+':'−');plateV(ctx,x1,105,275,sign>0?'−':'+');
+  for(let i=0;i<6;i++){const yy=125+i*27;
+    const ax=sign>0?x0+22:x1-22, bx=sign>0?x1-22:x0+22;
+    arr(ctx,ax,yy,bx,yy,sign>0?C.blue:C.red,1.6,7);}
+  const n=Math.min(3,Math.floor(p*4)), u=p*4-n;
+  const f=u*u, s=75*(n+f), vmax=10, v=(n%2===0?u:1-u)*vmax;
+  const px=x0+300*(n+f)/4;
+  dot(ctx,px,y,7,C.red,true);
+  if(v>0.2)arr(ctx,px,y,px+18+28*v/vmax,y,C.orange,2.6,8);
+  txt(ctx,'t = 0 静止释放',x0+30,y-38,14,C.sub);
+  // U-t
+  chartAxes(ctx,490,145,190,80,'U-t');
+  const cy=105, amp=26, sw=190/4;
+  for(let k=0;k<4;k++){const yy=k%2===0?cy-amp:cy+amp;
+   poly(ctx,[[490+k*sw,yy],[490+(k+1)*sw,yy]],k%2===0?C.blue:C.red,2);
+   if(k<3)seg(ctx,490+(k+1)*sw,cy-amp,490+(k+1)*sw,cy+amp,k%2===0?C.blue:C.red,1.4,[4,3]);}
+  seg(ctx,490+p*190,cy-38,490+p*190,cy+38,C.green,1.6,[4,3]);
+  // v-t
+  chartAxes(ctx,490,335,190,100,'v-t');
+  for(let k=0;k<4;k++){
+   const pts=k%2===0?[[490+k*sw,335],[490+(k+1)*sw,335-70]]:[[490+k*sw,335-70],[490+(k+1)*sw,335]];
+   poly(ctx,pts,C.orange,2.2);
+  }
+  seg(ctx,490+p*190,335-90,490+p*190,335+12,C.green,1.6,[4,3]);
+  dot(ctx,490+p*190,335-70*v/vmax,4,C.red);
+  txt(ctx,'每半周期位移相等',260,355,14,C.sub,'center');
+ }
+};
+
+/* 08 等效重力场 */
+models[8]={duration:4, params:{ratio:10},
+ table:null,
+  build(m){
+  const g=10,r=m.params.ratio*g,gp=Math.hypot(g,r),R=1;
+  const v0=Math.sqrt(5*gp*R),dt=0.001;
+  let phi=0,v=v0,t=0;const tb=[[0,0,v0]];
+  while(phi<2*Math.PI&&t<30){
+   v=Math.sqrt(Math.max(0,v0*v0-2*gp*R*(1-Math.cos(phi))));
+   phi+=v/R*dt;t+=dt*8;tb.push([t,phi,v]);   // 时间轴放慢 8 倍，便于课堂观察；φ-v 关系仍严格来自能量守恒
+  }
+  m.table=tb;m.duration=t;m.gp=gp;m.ratio=m.params.ratio;
+ },
+ draw(ctx,p,m){
+  if(!m.table||m.ratio!==m.params.ratio)m.build(m);
+  gridBg(ctx);const cx=250,cy=200,Ra=125,g=10,r=m.params.ratio*g,gp=m.gp;
+  for(let i=0;i<7;i++){const yy=100+i*34;arr(ctx,60,yy,430,yy,C.blue,1.4,6);}
+  txt(ctx,'E',450,105,16,C.blue);
+  const ux=r/gp,uy=g/gp, bx=cx+Ra*ux,by=cy+Ra*uy, tx=cx-Ra*ux,ty=cy-Ra*uy;
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,Ra,0,7);ctx.strokeStyle='#8497ac';ctx.lineWidth=2.4;ctx.setLineDash([9,6]);ctx.stroke();ctx.restore();
+  dot(ctx,cx,cy,4,C.sub);
+  dot(ctx,tx,ty,6,C.red);txt(ctx,'等效最高点',tx-8,ty-18,13,C.red,'center');
+  dot(ctx,bx,by,5,C.green);txt(ctx,'等效最低点',bx+8,by+20,13,C.green,'center');
+  // 查找 t -> phi, v
+  const tt=p*m.duration,tb=m.table;
+  let lo=0,hi=tb.length-1;while(lo<hi-1){const mid=(lo+hi)>>1;if(tb[mid][0]<tt)lo=mid;else hi=mid;}
+  const [t0,ph0,v0]=tb[lo],[t1,ph1,v1]=tb[hi],f=(tt-t0)/Math.max(1e-9,t1-t0);
+  const phi=ph0+(ph1-ph0)*f,v=v0+(v1-v0)*f;
+  const px=cx+Ra*(ux*Math.cos(phi)-uy*Math.sin(phi));
+  const py=cy+Ra*(uy*Math.cos(phi)+ux*Math.sin(phi));
+  seg(ctx,cx,cy,px,py,C.orange,2.4);
+  dot(ctx,px,py,8,C.red,true);
+  // 力三角：按真实比例画，整体缩放进画布，大比值时电场力明显压倒重力
+  const ratio=m.params.ratio, ox=575, oy=110;
+  const w=Math.min(95,60*ratio), h=ratio>0?w/ratio:60;
+  const low=h<12;
+  arr(ctx,ox,oy,ox,oy+h,C.blue,2.4,7);
+  txt(ctx,'mg',ox-8,low?oy+22:oy+h/2,12,C.blue,'right');
+  if(w>4){arr(ctx,ox,oy+h,ox+w,oy+h,C.green,2.4,7);txt(ctx,'qE',ox+w/2,oy+h+14,12,C.green,'center');}
+  arr(ctx,ox,oy,ox+w,oy+h,C.red,2.4,8);
+  txt(ctx,'mg′',ox+w/2+6,low?oy-12:oy+h/2-10,12,C.red);
+  txt(ctx,'g′ = '+gp.toFixed(1)+' m/s²',540,325,14,C.sub,'center');
+  txt(ctx,'v = '+v.toFixed(1)+' m/s　 v_min = √g′L = '+Math.sqrt(gp).toFixed(1),540,350,14,C.orange,'center');
+ }
+};
+
+/* ========== 初始化画布与控制 ========== */
+function setupCanvas(cv,m){
+  const dpr=window.devicePixelRatio||1;
+  const cssW=cv.clientWidth||640, cssH=cssW*H/W;
+  cv.style.height=cssH+'px';cv.width=Math.round(cssW*dpr);cv.height=Math.round(cssH*dpr);
+  const ctx=cv.getContext('2d');
+  const render=()=>{ctx.setTransform(cv.width/W,0,0,cv.height/H,0,0);m.draw(ctx,m.t/m.duration,m);};
+  return render;
+}
+const app=[];
+for(let i=1;i<=8;i++){
+  const m=Object.assign({t:0,playing:true,visible:false,userPaused:false},models[i]);
+  const cv=document.querySelector('canvas[data-c="'+i+'"]');
+  const render=setupCanvas(cv,m);
+  const playBtn=document.querySelector('button[data-play="'+i+'"]');
+  const resetBtn=document.querySelector('button[data-reset="'+i+'"]');
+  const slider=document.querySelector('input[data-p="'+i+'"]');
+  const readout=document.querySelector('span[data-r="'+i+'"]');
+  if(slider)slider.addEventListener('input',()=>{
+    const v=parseFloat(slider.value);
+    if(i===4)m.params.v0=v;else if(i===8)m.params.ratio=v;
+    else if(i===7)m.params.T=v;else m.params.U=v;
+    if(i===8){m.table=null;m.duration=4;}
+    if(i===7)m.duration=2+v/10;
+    m.t=0;
+  });
+  playBtn.addEventListener('click',()=>{m.userPaused=!m.userPaused;m.playing=!m.userPaused;playBtn.textContent=m.playing?'⏸ 暂停':'▶ 播放';});
+  resetBtn.addEventListener('click',()=>{m.t=0;m.playing=true;m.userPaused=false;playBtn.textContent='⏸ 暂停';});
+  app.push({m,render,playBtn,readout,i});
+  m.draw(document.querySelector('canvas[data-c="'+i+'"]').getContext('2d'),0,m);
+}
+const obs=new IntersectionObserver(es=>{
+  es.forEach(e=>{const i=parseInt(e.target.id.slice(1));const a=app[i-1];
+    a.m.visible=e.isIntersecting&&e.intersectionRatio>0.12;
+    if(!a.m.visible&&!a.m.userPaused)a.m.playing=false;
+    else if(a.m.visible&&!a.m.userPaused)a.m.playing=true;
+    a.playBtn.textContent=a.m.playing?'⏸ 暂停':'▶ 播放';
+  });
+},{threshold:[0,0.12,0.4]});
+document.querySelectorAll('.card').forEach(c=>obs.observe(c));
+const navObs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id));}});
+},{threshold:0.5});
+document.querySelectorAll('.card').forEach(c=>navObs.observe(c));
+let last=performance.now(),globalPaused=false;
+function frame(now){
+  const dt=Math.min(0.05,(now-last)/1000);last=now;
+  app.forEach(({m,render,i,readout})=>{
+    if(!globalPaused&&m.playing&&m.visible)m.t=(m.t+dt)%m.duration;
+    render();
+    if(i===1)readout.textContent='v = '+Math.sqrt(2*m.params.U).toFixed(2)+' m/s';
+    if(i===2){const ok=200>=m.params.U;readout.textContent=ok?'判据：穿过':'判据：折返';}
+    if(i===3)readout.textContent='y = '+(m.params.U*0.001125).toFixed(4)+' m';
+    if(i===4)readout.textContent='tanθ / tanα = 2.00';
+    if(i===5)readout.textContent='y = '+(m.params.U2*0.1).toFixed(2)+' mm';
+    if(i===6)readout.textContent='Y = '+(m.params.U/10*0.004).toFixed(3)+' m';
+    if(i===7)readout.textContent='每半周期位移 s = '+(100*(m.params.T/100)**2/8).toFixed(3)+' m';
+    if(i===8)readout.textContent='g′ = '+Math.hypot(10,m.params.ratio*10).toFixed(1)+' m/s²';
+  });
+  requestAnimationFrame(frame);
+}
+// 定格参数：地址栏加 ?p=0.7 可把 8 个动画同时固定在 70% 处，便于截图或课堂逐帧讲解
+const fixedP=parseFloat(new URLSearchParams(location.search).get('p'));
+if(!isNaN(fixedP)&&fixedP>=0&&fixedP<=1){
+  app.forEach(a=>{a.m.t=fixedP*a.m.duration;a.m.playing=false;a.m.userPaused=true;a.playBtn.textContent='▶ 播放';});
+  document.getElementById('globalBtn').textContent='▶ 全部播放';
+}
+requestAnimationFrame(frame);
+document.getElementById('globalBtn').addEventListener('click',e=>{
+  globalPaused=!globalPaused;e.target.textContent=globalPaused?'▶ 全部播放':'⏸ 全部暂停';
+});
+window.addEventListener('resize',()=>{
+  app.forEach((a,i)=>{const cv=document.querySelector('canvas[data-c="'+(i+1)+'"]');
+    const nr=setupCanvas(cv,a.m);a.render=nr;});
+});
+</script>
+</body>
+</html>
